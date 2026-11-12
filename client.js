@@ -5,8 +5,9 @@
  *  1. 给媒体下方的“本地地址”链接套小字号/弱化样式；
  *  2. 拦截对 /open 路由的点击：preventDefault 后只触发 host 的本地打开
  *     （fetch /open → host spawn 本地播放器/图片工具），不导航、不开新 tab；
- *  3. 把 host 改写的「▶ 播放视频」链接替换成 <video controls> 播放器
- *     （MutationObserver 兜底，兼容流式渲染完成后才出现的元素）。
+ *  3. 把 host 改写的播放链接替换成 <video controls> 播放器
+ *     （MutationObserver 兜底，兼容流式渲染完成后才出现的元素）。host 侧拿不到界面
+ *     语言，链接文字是英文占位，播放器加载失败回退成链接时用本模块的 locale 文案。
  *
  * 无客户端模块时降级：视频链接点击会在新标签打开 /video 路由 —— host 返回视频
  * 字节，浏览器直接播放；图片链接新标签 302 到图片本身 —— 功能不丢，只是没有
@@ -22,10 +23,37 @@ window.__ModuleLoader__.load({
   factory: function () {
     var OPEN_HREF = '/plugins/dsh-image-preview/open'
     var VIDEO_HREF = '/plugins/dsh-image-preview/video'
-    var VIDEO_LABEL = '▶ 播放视频'
+
+    /** dsh locale 命名空间：文案由 dsh 按当前语言解析。 */
+    var NS = 'imagePreview'
+    var STRINGS = {
+      zh: { play: '▶ 播放视频' },
+      en: { play: '▶ Play video' },
+    }
+    var boundT = null
+
+    function fallbackT(key) {
+      var lang = typeof document !== 'undefined' && String(document.documentElement.lang || '').indexOf('zh') === 0 ? 'zh' : 'en'
+      var value = STRINGS[lang][key]
+      return typeof value === 'string' ? value : (STRINGS.zh[key] || '')
+    }
+
+    /** 当前语言的「播放视频」文案：优先走 dsh 的 locale（每次读取当前语言）。 */
+    function playLabel() {
+      return boundT !== null ? boundT('play') : fallbackT('play')
+    }
 
     function apply(ctx) {
       if (typeof document === 'undefined') return
+
+      // 注册词典并绑定翻译；没有 locale 服务（或已注册）时退回本地词典。
+      var locale = typeof ctx.get === 'function' ? ctx.get('locale') : undefined
+      if (locale !== undefined && locale !== null && typeof locale.register === 'function') {
+        try { locale.register(NS, STRINGS) } catch (e) { /* 已注册（HMR 重挂）就沿用现有词典 */ }
+      }
+      if (locale !== undefined && locale !== null && typeof locale.bind === 'function') {
+        try { boundT = locale.bind(NS) } catch (e) { boundT = null }
+      }
 
       var style = document.createElement('style')
       style.textContent = [
@@ -63,7 +91,7 @@ window.__ModuleLoader__.load({
       ].join('\n')
       document.head.appendChild(style)
 
-      // 把「▶ 播放视频」链接替换成 <video controls> 播放器。
+      // 把播放链接替换成 <video controls> 播放器。
       var replaceVideos = function () {
         var anchors = document.querySelectorAll('a[href*="' + VIDEO_HREF + '"]')
         for (var i = 0; i < anchors.length; i++) {
@@ -80,7 +108,7 @@ window.__ModuleLoader__.load({
             var el = this
             var fallback = document.createElement('a')
             fallback.href = href
-            fallback.textContent = VIDEO_LABEL
+            fallback.textContent = playLabel()
             if (el.parentNode !== null) el.parentNode.replaceChild(fallback, el)
           })
           anchor.parentNode.replaceChild(video, anchor)

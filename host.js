@@ -44,7 +44,9 @@ const VIDEO_EXT_RE = /\.(mp4|m4v|webm|mov|ogv)$/i
 const BARE_STOP = "\\s'\"<>\\[\\]\u3001\uFF0C\u3002\uFF1B;`"
 const DEFAULT_MAX_BYTES = 20 * 1024 * 1024
 const DEFAULT_VIDEO_MAX_BYTES = 512 * 1024 * 1024
-const VIDEO_LABEL = '▶ 播放视频'
+// 链接文字用英文中性写法：host 拿不到界面语言，客户端渲染后按当前 locale 替换；
+// 正常路径下这个链接会被 client 换成 <video> 播放器，文字只在播放器加载失败回退时露出来。
+const VIDEO_LABEL = '▶ Play video'
 
 /**
  * 持久化 token：写入 $DSH_HOME/plugins/dsh-image-preview.token（600 权限）。
