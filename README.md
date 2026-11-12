@@ -36,7 +36,7 @@
 
 ```bash
 cd ~/.dsh/profiles/web
-pnpm add github:ywleeo/dsh-image-preview
+pnpm add github:DSH43/dsh-image-preview
 ```
 
 然后在 `~/.dsh/profiles/web/cordis.patch.yml`（用户 patch 层）追加：
@@ -161,7 +161,7 @@ pnpm run release major    # 递增 major
 
 ### 其它机器/重装后更新
 
-- 首次：`pnpm add github:ywleeo/dsh-image-preview#vX.Y.Z`（按 tag 安装，可复现）
+- 首次：`pnpm add github:DSH43/dsh-image-preview#vX.Y.Z`（按 tag 安装，可复现）
 - 已安装：`pnpm update dsh-image-preview`（重新拉取默认分支最新代码）后重启 + 刷新
 
 ## 已知边界

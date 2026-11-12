@@ -6,7 +6,7 @@
 # /open routes; the client half (client.js) turns the "play video" link into a
 # <video controls> player, tightens spacing, and intercepts the open link.
 #
-# Installed with: dsh plugin --profile web add "github:ywleeo/dsh-image-preview#main"
+# Installed with: dsh plugin --profile web add "github:DSH43/dsh-image-preview#main"
 - insert:
     - id: dsh-image-preview
       name: dsh-image-preview
